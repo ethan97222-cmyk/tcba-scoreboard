@@ -1,0 +1,17 @@
+const assert=require('node:assert/strict');
+const fs=require('node:fs'),os=require('node:os'),path=require('node:path');
+const {TournamentDatabase}=require('./database');
+const dir=fs.mkdtempSync(path.join(os.tmpdir(),'capball-db-test-')),file=path.join(dir,'scoreboard.sqlite');
+const fixture=(id,results,ended=true)=>({inning:1,half:'top',score:{away:2,home:0},outs:0,balls:0,strikes:0,bases:[0,0,0],pitchCount:{away:0,home:7},currentBatterIndex:{away:0,home:0},rosters:{away:{teamName:'臺大',lineup:[{id,no:'24',name:'測試選手',pos:'RF',results}]},home:{teamName:'陽明',lineup:[{id:'pitcher',no:'9',name:'測試投手',pos:'P',results:[]}]}},retired:{away:[],home:[]},log:[],ended,tracking:{pitchers:{home:{id:'pitcher',no:'9',name:'測試投手'},away:null},pitchStats:{'home:pitcher':{pitches:7,k:1,bb:1,complete:true}}}});
+let db=new TournamentDatabase(file);
+const first=fixture('local-1',['HR','BB','K','1B']);db.save(first);db.save(first);db.save(first);
+let row=db.totals('ntut-cup',first.matchId).find(p=>p.name==='測試選手');assert.equal(row.pa,4);assert.equal(row.hr,1);assert.equal(row.avg,'0.667');
+const second=fixture('new-import-id',['HR'],false);db.save(second);row=db.totals('ntut-cup',second.matchId).find(p=>p.name==='測試選手');assert.equal(row.pa,5);assert.equal(row.hr,2);assert.equal(row.avg,'0.750');assert.equal(first.rosters.away.lineup[0].playerId,second.rosters.away.lineup[0].playerId);
+second.rosters.away.lineup[0].results=[];db.save(second);assert.equal(db.totals('ntut-cup',second.matchId).find(p=>p.name==='測試選手').hr,1);
+second.rosters.away.lineup[0].results=['HR'];second.ended=true;db.save(second);const third=fixture('third',[],false);db.save(third);assert.equal(db.totals('ntut-cup',third.matchId).find(p=>p.name==='測試選手').hr,2);assert.equal(db.view(third).matches.length,3);
+db.importMatch(JSON.parse(JSON.stringify(first)));db.importMatch(JSON.parse(JSON.stringify(first)));assert.equal(db.totals('ntut-cup',third.matchId).find(p=>p.name==='測試選手').pa,5);assert.equal(db.active().matchId,third.matchId);
+const restored=db.match(first.matchId,'ntut-cup');assert.equal(restored.rosters.away.lineup[0].results.length,4);
+const cup=db.create('第二屆');const other=fixture('local-1',['BB'],true);other.tournament=cup;db.save(other);assert.equal(db.totals(cup.id,other.matchId).find(p=>p.name==='測試選手').hr,0);assert.equal(db.totals('ntut-cup','').find(p=>p.name==='測試選手').hr,2);
+const backup=path.join(dir,'backup.sqlite');db.backup(backup);const copy=new TournamentDatabase(backup);assert.equal(copy.active().matchId,other.matchId);copy.close();db.close();db=new TournamentDatabase(file);assert.equal(db.active().matchId,other.matchId);assert.equal(db.totals('ntut-cup','').find(p=>p.name==='測試選手').pa,5);db.close();
+assert.ok(path.resolve(dir).startsWith(path.resolve(os.tmpdir())+path.sep));fs.rmSync(dir,{recursive:true});
+console.log('PASS: SQL 跨場累計、名單重匯入認人、重複儲存不重算、復原、歷史還原、重匯紀錄去重、賽會隔離、重啟與備份');

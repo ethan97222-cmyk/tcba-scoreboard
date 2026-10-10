@@ -1,0 +1,11 @@
+const assert=require('node:assert/strict'),stats=require('./statistics');
+const p=(id,name,pos='P')=>({id,name,no:id,pos,results:[]});
+function game(){return{inning:1,half:'top',score:{away:0,home:0},log:[],rosters:{away:{teamName:'客',lineup:[p('1','客先發'),p('2','客後援')]},home:{teamName:'主',lineup:[p('3','主先發'),p('4','主後援')]}},currentBatterIndex:{away:0,home:0}};}
+const s=game();stats.ensure(s);const runner=stats.batterRunner(s,'away');stats.changePitcher(s,'home','4');stats.scoring(s,'away',[runner],p('5','致勝打者','DH'),'1B');let q=stats.summary(s);assert.equal(q.winningPitcher.name,'客先發');assert.equal(q.losingPitcher.name,'主先發');assert.equal(q.winningRbi.name,'致勝打者');
+stats.scoring(s,'home',[stats.batterRunner(s,'home')],p('6','追平者','DH'),'HR');assert.equal(stats.summary(s).winningRbi,null);stats.changePitcher(s,'away','2');stats.scoring(s,'away',[stats.batterRunner(s,'away')],p('7','最終致勝','DH'),'HR');q=stats.summary(s);assert.equal(q.winningPitcher.name,'客後援');assert.equal(q.losingPitcher.name,'主後援');assert.equal(q.winningRbi.name,'最終致勝');s.rosters.away.lineup=[];assert.equal(stats.summary(s).winningPitcher.name,'客後援');
+const unknown=game();unknown.score.away=2;unknown.log=[{text:'舊紀錄'}];q=stats.summary(unknown);assert.equal(q.trackingComplete,false);assert.equal(q.winningRbi,null);assert.equal(q.winningPitcher,null);
+console.log('PASS: 自動勝敗投、追平後重算、換投繼承跑者、快照保留、舊紀錄不猜測');
+const pitching=game();pitching.pitchCount={away:0,home:0};stats.pitch(pitching,'home');stats.appearance(pitching,'home','K');stats.appearance(pitching,'home','BB');let active=stats.currentPitcher(pitching,'home');assert.equal(active.pitches,1);assert.equal(active.k,1);assert.equal(active.bb,1);assert.equal(active.complete,true);
+stats.changePitcher(pitching,'home','4');stats.pitch(pitching,'home');stats.pitch(pitching,'home');active=stats.currentPitcher(pitching,'home');assert.equal(active.pitches,2);assert.equal(active.k,0);assert.equal(active.bb,0);stats.changePitcher(pitching,'home','3');assert.equal(stats.currentPitcher(pitching,'home').k,1);
+const legacy=game();legacy.pitchCount={away:0,home:15};assert.equal(stats.currentPitcher(legacy,'home').complete,false);
+console.log('PASS: 投手 K/BB、用球累計、換投分開計算與舊紀錄標記');

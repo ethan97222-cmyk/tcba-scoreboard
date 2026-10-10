@@ -1,0 +1,15 @@
+node_modules/
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
+scoreboard-data.json*
+*.log
+*-preview.jpg
+*.zip
+.env
+.env.*
+!.env.example
+coverage/
+.DS_Store
+Thumbs.db

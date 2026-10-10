@@ -1,0 +1,21 @@
+{
+  "name": "baseball_scoreboard",
+  "version": "1.0.0",
+  "description": "TCBA bottle-cap baseball scoreboard with realtime control and SQLite tournament statistics",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test-scoreboard.js && node test-statistics.js && node test-database.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "express": "^5.2.1",
+    "socket.io": "^4.8.4"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}
