@@ -1,0 +1,49 @@
+/* Three solid broadcast diamonds: no panel, outline, or glow. */
+.diamond-field {
+  width: 142px;
+  height: 110px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  flex-shrink: 0;
+}
+.diamond-field::before,
+.diamond-field .home-plate { display: none; }
+.diamond-field .base {
+  width: 39px;
+  height: 39px;
+  border: 0;
+  border-radius: 0;
+  background: #89919f;
+  box-shadow: none;
+  transform: rotate(45deg);
+}
+.diamond-field .b2 { left: 51px; top: 12px; }
+.diamond-field .b3 { left: 14px; top: 49px; }
+.diamond-field .b1 { left: 88px; right: auto; top: 49px; }
+.diamond-field .base.lit {
+  background: #ffe06e;
+  border: 0;
+  box-shadow: none;
+}
+.base-cluster {
+  width: 90px;
+  height: 63px;
+}
+.base-cluster .mini-base {
+  width: 25px;
+  height: 25px;
+  border: 0;
+  border-radius: 0;
+  background: #89919f;
+  box-shadow: none;
+}
+.base-cluster .mini-base:nth-child(2) { left: 32px; top: 5px; }
+.base-cluster .mini-base:nth-child(3) { left: 8px; top: 29px; }
+.base-cluster .mini-base:nth-child(1) { left: 56px; top: 29px; }
+.base-cluster .mini-base.occupied {
+  background: #ffe06e;
+  border: 0;
+  box-shadow: none;
+}
